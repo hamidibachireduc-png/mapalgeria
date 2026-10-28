@@ -1,0 +1,409 @@
+# Contributing to GeoAlgeria
+
+Thanks for helping! GeoAlgeria aims to be the most complete, accurate, and
+*current* open dataset for Algeria, administrative divisions, postal/banking
+data today, and more kinds of Algeria data over time. Corrections, additions,
+and new-dataset proposals are all welcome.
+
+This is a small monorepo:
+
+| Path | Package | Contents |
+| --- | --- | --- |
+| `packages/schema/` | `@geoalgeria/schema` | shared v2 record/metadata contract, types, runtime validator, canonical metadata + manifest builders, CSV/GeoJSON emit helpers; a dev dependency of every generator, not itself a dataset |
+| `packages/normalize/` | `@geoalgeria/normalize` | Search key generation, the Conservative key, the Loose key, the tokenizer and their Golden corpus; code only, no data, zero runtime dependencies |
+| `packages/dataset/` | `geoalgeria` | wilayas, dairas, communes (+ mirrored postal data) |
+| `packages/poste/` | `@geoalgeria/poste` | post offices & ATMs (Algérie Poste) |
+| `packages/emploi/` | `@geoalgeria/emploi` | employment agencies (ANEM: AWEM + ALEM) |
+| `packages/mobilis/` | `@geoalgeria/mobilis` | Mobilis agencies & approved points of sale (mobilis.dz) |
+| `packages/telecom/` | `@geoalgeria/telecom` | cross-operator 5G coverage (Djezzy, Mobilis, Ooredoo) |
+| `packages/aviation/` | `@geoalgeria/aviation` | civil airports with ICAO codes (ANAC) |
+| `packages/banques/` | `@geoalgeria/banques` | licensed banks, institutions & branches (RIB/SWIFT) |
+| `packages/livraison/` | `@geoalgeria/livraison` | delivery carriers & geocoded stop-desks |
+| `packages/jeunesse/` | `@geoalgeria/jeunesse` | youth establishments (Ministry of Youth and Sports) |
+| `packages/sports/` | `@geoalgeria/sports` | sports facilities, stadiums, pools, courts, tracks (Ministry of Youth and Sports) |
+| `packages/enseignement-superieur/` | `@geoalgeria/enseignement-superieur` | higher-education network, universities, grandes écoles, ENS, centres + private & other-ministry institutions (MESRS) |
+| `packages/tourisme/` | `@geoalgeria/tourisme` | tourism infrastructure, hotels, attractions, historic sites, thermal springs, parks (ASAL, OSM, Wikidata) |
+| `packages/formation-professionnelle/` | `@geoalgeria/formation-professionnelle` | vocational training establishments (MFEP / takwin.dz) |
+| `packages/djezzy/` | `@geoalgeria/djezzy` | Djezzy boutiques, geocoded retail stores (djezzy.dz) |
+| `packages/mosquees/` | `@geoalgeria/mosquees` | mosques, Wikidata + OpenStreetMap composite (all 69 wilayas) |
+| `packages/sante/` | `@geoalgeria/sante` | public health establishments, EPH/EPSP/EHS/CHU (Ministry of Health), bilingual, geocoded via OSM + Wikidata |
+| `packages/culture/` | `@geoalgeria/culture` | cultural atlas, protected sites, museums, theatres, libraries + cultural establishments (Ministry of Culture), bilingual, fully geocoded |
+| `packages/agriculture/` | `@geoalgeria/agriculture` | agriculture-sector institutions, DSA, forest conservations, research/training institutes, chambers of agriculture, public offices & groups (Ministry of Agriculture), bilingual, geocoded |
+| `packages/ecoles/` | `@geoalgeria/ecoles` | schools, 11,858 primaires/CEM/lycées/préscolaires classified by cycle, bilingual, all 69 wilayas (OpenStreetMap) |
+| `packages/gares-routieres/` | `@geoalgeria/gares-routieres` | intercity bus stations, 74 SOGRAL gares routières, 52 wilayas, geocoded with surfaces from the archived SOGRAL registry plus current MAHATATI agency ids |
+| `packages/ferroviaire/` | `@geoalgeria/ferroviaire` | rail & urban transit, 692 train/tram/metro/aerial-tramway/gondola nodes (SNTF/SETRAM/SEMA), Wikidata + OSM composite, bilingual |
+| `packages/buses/` | `@geoalgeria/buses` | urban/suburban bus networks, 59 Lines, 42 OSM shapes, 75 Directions and 1,046 Stations across 3 Operators |
+| `packages/industrie-pharmaceutique/` | `@geoalgeria/industrie-pharmaceutique` | pharmaceutical manufacturers, 171 medicine & medical-device makers (Ministry of Pharmaceutical Industry), bilingual, geocoded |
+| `packages/pharmacies/` | `@geoalgeria/pharmacies` | pharmacies (officines), 3,795 geocoded, 67 wilayas (OpenStreetMap) |
+| `packages/ooredoo/` | `@geoalgeria/ooredoo` | Ooredoo stores, 572 EO/CSO/ESO with real coordinates (ooredoo.dz); completes the telecom retail trio |
+| `packages/transport/` | `@geoalgeria/transport` | transport umbrella, re-exports aviation + ferroviaire + gares-routieres + buses |
+| `packages/pharma/` | `@geoalgeria/pharma` | pharma umbrella, re-exports industrie-pharmaceutique + pharmacies |
+
+## How to contribute
+
+### 1. Fork, clone, install
+
+```bash
+git clone https://github.com/YOUR_FORK/geoalgeria.git
+cd geoalgeria
+pnpm install
+```
+
+### 2. Make your change
+
+- Fix incorrect data (names, postal codes, coordinates)
+- Add missing communes, dairas, or fields
+- Improve Arabic transliterations
+- Add a new export format
+
+For generated sector packages, do not hand-edit an emitted JSON/CSV/GeoJSON
+file. Put an evidence-backed correction in
+[`quality/overrides/`](quality/overrides/README.md) instead. The ledger keeps the
+review finding separate from the publication action and stops regeneration if
+the upstream record no longer matches the reviewed value.
+
+Data lives under `packages/dataset/data/` and `packages/poste/data/`. The postal
+data in `packages/dataset/data/poste/` is **generated**: edit it in
+`packages/poste` and run `npm run fetch` there (it mirrors into the dataset), don't
+hand-edit the mirror.
+
+### 3. Validate
+
+```bash
+pnpm validate    # schema + integrity checks on the dataset
+```
+
+It ends with a bundler check ([`scripts/check-bundlers.mjs`](scripts/check-bundlers.mjs),
+also `pnpm check-bundlers`): it packs the real tarballs, bundles them with esbuild
+and runs the output, because a package can load perfectly in Node and still fail in
+a bundled app (issue #276).
+
+### 4. Open a pull request
+
+Branch (`git checkout -b fix/commune-name-typo`), commit using
+[Conventional Commits](https://www.conventionalcommits.org)
+(`fix(dataset): correct Béjaïa postal code`), and open a PR against `main`.
+
+You **don't** bump versions, releases are automated. If your change touches
+published data, add a changeset so it ends up in the changelog:
+
+```bash
+pnpm changeset   # pick package(s) + bump type + a one-line note
+```
+
+(No worries if you skip it, a maintainer will add one.) On merge, a bot opens a
+"Version Packages" PR; merging that releases. See [`RELEASING.md`](RELEASING.md).
+
+## Data guidelines
+
+### Format
+- Follow the existing JSON schema (see [`packages/dataset/data/README.md`](packages/dataset/data/README.md))
+- UTF-8, no trailing commas
+- Keep entries sorted by `wilaya_code`, then alphabetically by `name_fr`
+
+### Naming
+- Use the project glossary's terms ([`CONTEXT.md`](CONTEXT.md)), including [Search and normalization](CONTEXT.md#search-and-normalization) for Search key, Conservative key, Loose key, Rule and Golden corpus
+- **French**: official JORA spelling (e.g., "Oum El Bouaghi")
+- **Arabic**: standard script, no tashkeel (diacritics)
+- **Daira**: the French name of the daira seat (chef-lieu)
+
+### Sources
+Always cite a source for data changes. Accepted:
+- Official Journal (JORA / الجريدة الرسمية)
+- Algérie Poste (postal codes, offices, ATMs)
+- ONS (National Statistics Office)
+- Interior Ministry publications
+- Wikipedia (secondary reference only)
+
+### Separators in metadata and names
+No em dash (U+2014) anywhere in published metadata. A source name reads
+`Operator: descriptor`, the DCAT `citation` joins a name and its licence with a
+comma, and a coverage note takes the colon or semicolon the sentence wants. Fix
+it in the generator that writes the field, never in the generated file:
+`pnpm validate` walks every `dataset-metadata.json`, `data/metadata.json` and
+`data/geojson/*.metadata.json` and fails on one
+([`scripts/lib/no-em-dash.mjs`](scripts/lib/no-em-dash.mjs)).
+
+A published **name** is covered too, and so is the en dash (U+2013) when it
+separates two halves of one: either takes ` - ` instead, a spaced hyphen that
+keeps the source's separation of the name without keeping the character, and
+nothing else about the name changes. This is a substitution, not a house
+separator; the repository has no single one. A dash between two digits is a
+range rather than a separator, so it is left alone: three sports facilities name
+an eponym's years.
+
+`writePackageV2` folds every name it emits, so the rule reaches every package
+through the shared writer, and `scripts/apply-overrides.mjs` applies it to a
+package whose generator cannot be re-run offline. A generator that writes its
+own files folds them itself (`packages/aviation/scripts/build-routes.mjs`), and
+a fetcher that cleans a raw upstream name puts it through `withoutEmDash()`
+there as well (as `packages/ecoles`, `packages/cliniques` and
+`packages/pharmacies` do with the raw OpenStreetMap tag), so a name is folded
+before anything keys or dedupes on it. Never edit the generated file; a
+hand-curated record is fixed in its own source file, and a correction to a
+fetched one is a `quality/overrides/<package>.json` entry. `pnpm validate` checks
+every `name`-keyed field of every published record, and
+`test/no-em-dash.test.mjs` sweeps the same fields over every published JSON and
+GeoJSON, `packages/dataset/algeria.geojson` included. The GeoJSON is walked in
+its own right because a mirror can carry a name the records do not: aviation's
+`routes.geojson` resolves `from_name` and `to_name` at emit time. The CSV and
+SQL mirrors are not parsed, being a projection of the same columns.
+Anything
+that is not a name stays out of scope: an address or a note is the source's own
+sentence, and rewriting one would be a data decision.
+
+### Licence field
+Every package states its terms in three places that must agree: the manifest
+`license`, the package `LICENSE` file, and the data terms in
+`dataset-metadata.json`. Pick the class that matches the metadata:
+
+| `dataset-metadata.json` | manifest `license` | `LICENSE` file |
+| --- | --- | --- |
+| absent, with `dependencies` on `@geoalgeria/*` (umbrella) | `SEE LICENSE IN LICENSE` | starts with `## Code` then the MIT text, plus a `## Data` section listing exactly one `- @geoalgeria/<member>: <terms>` line per member |
+| absent (code only) | `MIT` | the plain MIT text |
+| `license` is the MIT URL | `MIT` | the plain MIT text |
+| `license` is the ODbL 1.0 URL | `MIT AND ODbL-1.0` | `## Code` MIT, plus a `## Data` section carrying the ODbL URL |
+| `license` is an array of the MIT URL and the ODbL 1.0 URL | `MIT AND ODbL-1.0` | starts with `## Code` then the MIT text, plus a `## Data` section carrying both URLs and listing each non-MIT carve-out as a `- ` bullet naming the `data/...` paths it covers. Also needs a `NOTICE`, listed in `files[]`, carrying the ODbL URL and every one of those paths |
+| `conditionsOfAccess` | `SEE LICENSE IN LICENSE` | starts with `## Code` then the MIT text, plus a `## Data` section carrying `conditionsOfAccess` verbatim |
+
+The array class is for a package whose data is not all under one set of terms:
+the bulk under one licence and a named part under another, as `geoalgeria` ships
+MIT-licensed administrative divisions beside OpenStreetMap-derived geometry and
+coordinates. A single URL cannot say that, and picking the stricter one alone
+would relicense the rest, so the array carries both and the `LICENSE` and
+`NOTICE` say which part each one covers.
+
+It is the only class where the carve-out has to be enumerated, so it is the only
+one whose `NOTICE` is checked: the `LICENSE` sends a consumer there for the
+per-part attribution, so a missing `NOTICE`, a `NOTICE` left out of `files[]` (in
+git, absent from the npm tarball), a `NOTICE` without the ODbL URL, or a carved-out
+path the `NOTICE` never names all fail `pnpm validate`. A carve-out bullet that
+names no `data/...` path fails too: prose cannot be checked part by part.
+
+A package also ships descriptors under `data/`: `data/metadata.json`, and a
+`<file>.metadata.json` beside any file that needs one. Each carries a `license`
+of its own, and `pnpm validate` reads every one of them, discovered rather than
+listed, against the class above:
+
+- exactly one of `license` or `conditionsOfAccess`, the exclusive pair the
+  Dataset JSON-LD rule already requires of `dataset-metadata.json`;
+- prose terms must be carried verbatim by the `## Data` section of the package
+  `LICENSE`, so a descriptor cannot offer data on terms no licence file grants;
+- an SPDX expression under a `SEE LICENSE IN LICENSE` package needs a
+  `provenance_notes` entry naming both the expression and that manifest value.
+  The manifest value means no SPDX expression states the package's terms, so a
+  descriptor producing one is either a stale copy of a pre-class-change manifest,
+  or a part whose own data really is wholly under that licence. Only the second
+  is allowed, and the note is where it is argued: `data/geojson/communes.geojson`
+  mixes MIT rows with ODbL ones and states prose, while every feature of
+  `data/geojson/wilaya-boundaries.geojson` is ODbL and it states `ODbL-1.0`.
+
+`pnpm validate` enforces this on every package, so a new licence class needs an
+entry in [`scripts/lib/licence-terms.mjs`](scripts/lib/licence-terms.mjs) before
+the package can pass. Whichever class a package falls in, its
+`LICENSE` must carry the MIT grant itself, verbatim and above any `## Data`
+section: the `## Code` heading is not the terms.
+
+### Source rights registry
+The `license` field says how a package may be used. It does not say what may be
+done with each Source behind it, and the sentences in `metadata.sources[].license`
+only look like they do: "Factual public listing (ANEM)" and
+"Data © SOGRAL; redistributed for reference" are Source notes, not grants. So
+rights live in their own registry, keyed by Source rather than by package, because
+packages mix Sources: `@geoalgeria/sante` is an official registry plus ODbL and
+CC0 geocoding.
+
+[`packages/schema/rights/registry.json`](packages/schema/rights/registry.json)
+holds one record per Source: the permanent Source key, every Source key it is
+captured under, its [Access class and Rights class](CONTEXT.md#source-rights), the
+Targets it is cleared for, attribution and NOTICE text, the evidence the
+classification was read from with a retrieval date, a review date, and a slot for
+a Recorded refusal. 49 records cover the 57 distinct Source keys the packages
+publish.
+
+The registry is a **repository file**, not part of any published package: it sits
+beside `@geoalgeria/schema` for the generators that already import that contract,
+but `rights/registry.json` is excluded from the npm files and the package entry
+point does not reach it. Read it by path from a checkout, which is how the Content
+release generator reads it at a pinned data commit:
+
+```js
+import { isSourceClearedFor } from "<data checkout>/packages/schema/src/rights.js";
+```
+
+`isSourceClearedFor(sourceKey, target)` is the only question a publisher asks, and
+it fails closed: an unknown Source, a key two records claim, an unknown Rights
+class, an unknown Target, `restricted-research`, `prohibited`, or a recorded
+refusal all answer no, whatever `allowed_targets` says. `clearanceForMetadata`
+asks it for a whole dataset and names the Sources that block a Target.
+
+`pnpm validate` enforces two rules:
+
+- every Source key in every published `.json` and `.geojson` under a package's
+  `data/`, plus the root `dataset-metadata.json`, resolves to exactly one record.
+  The scan reads them at any depth, because `sources` and `source` are
+  overloaded: a provenance block of objects with a `key`, a record-level array of
+  bare keys, a record's `source` string with keys joined by `+`, and prose or URL
+  citations in those same positions. What tells a key from a citation is what a
+  citation always has and a key never does: whitespace, a `/`, a `:`, or nothing
+  but digits. Everything else is read as a key and has to resolve, so `OSM` and
+  `Wikidata` are errors naming them rather than prose the scan walks past, and
+  both halves of `msp+OSM` are checked. A registered key is narrower still,
+  lowercase with no spaces, so a record cannot introduce a key spelled in a way
+  the data would not match. Adding a Source to a fetcher without classifying it
+  fails the build, which is the point: a Source with no record enters no Target.
+- the registry stays inside its vocabulary and stays consistent. A
+  `restricted-research` or `prohibited` record carrying Targets, a recorded refusal
+  that left the Targets behind, `cdn` or `mobile-pack` without both the `web` and
+  `npm` Targets that clear them, a key or metadata key outside the key shape, two
+  records claiming one key, unsorted records, evidence with no public URL and no
+  committed file, or a missing retrieval or review date are all errors naming the
+  record. A `review_after` that has passed is
+  a warning, not a failure.
+
+A new Source therefore means, in the same pull request: the fetcher and the
+record. No changeset, because nothing published changes. The classification comes
+from the Source's own terms, read and dated, not from the fact that the page loaded
+without a login. Where the terms grant nothing, `rights-unconfirmed` is the correct
+answer and not a placeholder: a Source that Web and npm already publish carries
+`cdn` and `mobile-pack` on that basis alone, and a Source they do not publish
+carries neither. Third-party tiles and styles are `prohibited` and carry no Target
+in any form.
+
+Package `license` fields, `LICENSE` files and metadata licence text are untouched
+by the registry. It is the decision record a generator reads, not a new claim about
+terms.
+
+### Search-key rules
+`@geoalgeria/normalize` publishes the orthographic equivalences GeoAlgeria asserts
+about Algerian names as a reviewed table, so that someone who reads the language
+and not the code can argue with one. Changing or adding a rule means, in the same
+pull request:
+
+- the rule in [`packages/normalize/src/rules.js`](packages/normalize/src/rules.js),
+  with one sentence a speaker of the language can argue with and a review record
+  naming who reviewed that sentence and when;
+- at least one case in `packages/normalize/fixtures/corpus.js` proving it, naming
+  the rule in its `proves` list;
+- the committed reviewed order in
+  [`scripts/lib/normalize-rules.mjs`](scripts/lib/normalize-rules.mjs), if the rule
+  is new, moved or removed;
+- the rationale in all three package READMEs, in each language.
+
+`pnpm validate` fails on a rule with no review record, a rule no corpus case
+proves, a case naming a rule that is not in the table, a repeated identifier, or a
+table order that no longer matches the committed one. Changing what a key function
+returns for any input is a major version: published catalogs are keyed on it.
+
+### The major-changeset guard
+
+Search keys are baked into every published catalog, and an installed catalog is
+never migrated record by record, so a key that changes after a release has shipped
+rebuilds and re-downloads the whole catalog on every device. A key change is
+therefore closer to a schema change than to a bug fix, and CI enforces it at the
+only cheap moment. A pull request whose diff touches
+
+- `packages/normalize/src/**`
+- `packages/normalize/fixtures/corpus.js`
+- `packages/normalize/index.js`
+
+must carry a changeset declaring `"@geoalgeria/normalize": major`, or the
+`normalize major changeset` job fails. The decision is
+[`scripts/lib/normalize-changeset.mjs`](scripts/lib/normalize-changeset.mjs), the
+job feeds it `git diff --name-only` against the base branch, and the unit tests are
+in [`test/normalize-changeset.test.mjs`](test/normalize-changeset.test.mjs).
+
+**The check is path-based and deliberately blunt.** It reads which files the diff
+touched, not what the change meant, so fixing a typo in a comment in
+`packages/normalize/src/rules.js` still needs the major changeset, even though the
+keys did not move. That is the accepted cost: a guard that decides whether an edit
+changed behaviour would have to understand the edit, which is exactly the judgement
+this guard exists so that nobody has to trust. An unnecessary major costs one
+version number; a missed one costs every installed catalog on every device. When a
+documentation-only edit to one of those files is genuinely all you have, either
+write the major changeset or move the edit to a file outside the list, such as a
+README or a type declaration.
+
+One exception used to apply, while `@geoalgeria/normalize` was not yet on npm: the
+guard also passes when `npm view @geoalgeria/normalize version` answers 404, because
+there was then no published catalog to invalidate and the package's first release
+entry was a patch on the flagship rather than a major on a package nobody could
+install. **1.0.0 was published on 2026-09-29**, so the registry no longer answers
+404 and that path is closed: only the major changeset satisfies the guard. The code
+path stays as a fail-safe, not as a route anyone can take.
+
+A 404 is the only registry answer that opens that exception. If the registry
+cannot be reached at all, a timeout, an auth error, no `npm` on the PATH, the guard
+**fails closed** and asks for the major anyway. A registry that did not answer is
+not a registry that said the package does not exist, and the asymmetry above
+decides the tie: blocking a pull request until the registry is back costs a rerun,
+while letting a key change through on a timeout costs every installed catalog.
+
+### What not to submit
+- Data from unofficial/unverifiable sources
+- Frequently-changing data better served as its own dataset (e.g. population)
+- Political/opinion content or copyrighted material
+
+## Requesting a new dataset
+
+GeoAlgeria is meant to grow into the open reference source for *all kinds* of Algeria
+data, as sources allow. Know of one worth adding (elections, schools, health
+facilities, economic indicators, transport…)?
+
+- **Have a concrete, sourced dataset in mind?** Open a
+  [**Request a dataset**](https://github.com/yasserstudio/geoalgeria/issues/new/choose)
+  issue, include where the data comes from and whether it's freely available.
+- **Just an idea or want to discuss/upvote?** Use
+  [Discussions](https://github.com/yasserstudio/geoalgeria/discussions).
+
+## What happens to an issue you open
+
+Use the
+[forms](https://github.com/yasserstudio/geoalgeria/issues/new/choose) rather
+than a blank issue: a **Data correction** asks for the dataset, the record and a
+source link, and will not submit without the evidence field, because a
+correction nobody can check cannot be applied.
+
+The site's "report a data issue" link, on every record panel, opens that same
+form with the dataset and the record id already filled in.
+
+From there `.github/workflows/issue-intake.yml` runs once, on open:
+
+- it labels the issue `needs-triage`, so nothing sits unseen;
+- it adds a `data:<slug>` label when the issue names one of the dataset
+  packages and that label exists on this repository;
+- it files a matching issue on the maintainer's private tracker, titled
+  `[public #N]` and linking back here. Your thread stays the record of what you
+  reported.
+
+Nothing answers you automatically. Replies come from the maintainer, so expect
+a human rather than a bot, and allow a few days.
+
+### Maintainers: the intake token
+
+The mirror step needs `TRACKER_ISSUES_TOKEN`, an **Actions repository secret**
+on `yasserstudio/geoalgeria` holding a **fine-grained personal access token**
+scoped as narrowly as it goes:
+
+- resource owner `yasserstudio`, and **only** the `yasserstudio/geoalgeria.com`
+  repository;
+- repository permission **Issues: read and write**, nothing else;
+- a deliberate expiry, with a calendar reminder to rotate it. The workflow logs
+  a notice and passes when the token is absent, so an expired one loses mirrors
+  quietly instead of turning runs red: the reminder is what catches that.
+
+The labelling half uses the run's own `GITHUB_TOKEN` and needs no secret, so
+intake keeps working while the token is missing or being rotated. The same
+token is documented on the app side, in `docs/agents/issue-tracker.md`.
+
+## Code of conduct
+
+Be respectful and constructive, assume good intent, focus on accuracy over
+preference, and welcome newcomers, not everyone is fluent in git or JSON. The
+full text, with how to report a problem, is in
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## Questions?
+
+Open a [Discussion](https://github.com/yasserstudio/geoalgeria/discussions) and
+we'll help.
