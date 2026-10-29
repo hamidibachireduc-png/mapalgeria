@@ -1,0 +1,53 @@
+{
+  "package": "@geoalgeria/agriculture",
+  "schema_version": "2.0.0",
+  "title_fr": "Institutions agricoles d'Algérie",
+  "title_ar": "المؤسسات الفلاحية الجزائرية",
+  "title_en": "Algeria agricultural institutions",
+  "record_count": 196,
+  "geocoded_count": 196,
+  "geocoded_pct": 100,
+  "precision": {
+    "exact": 0,
+    "approximate": 196
+  },
+  "estimated_universe": null,
+  "coverage_pct": null,
+  "coverage_note": "Agricultural institutions (training institutes, research, services) from the MADR; all positions are wilaya- or commune-centroid approximations (no surveyed points).",
+  "wilayas_covered": 58,
+  "bbox": [
+    -8.12724,
+    19.569671,
+    9.484194,
+    36.9
+  ],
+  "sources": [
+    {
+      "key": "madr",
+      "name": "Ministry of Agriculture, Rural Development and Fisheries (MADR)",
+      "url": "https://madr.gov.dz",
+      "license": "Factual public institutional listing (MADR)",
+      "retrieved": "2026-06-30",
+      "evidence_type": "official"
+    }
+  ],
+  "license": "Factual public institutional listing (MADR)",
+  "updated": "2026-06-30",
+  "by_type": {
+    "centre_formation": 11,
+    "chambre_agriculture": 49,
+    "conservation_forets": 48,
+    "dsa": 58,
+    "institut_recherche": 16,
+    "groupe_public": 10,
+    "office_public": 4
+  },
+  "by_sector": {
+    "public": 196
+  },
+  "by_geo_method": {
+    "wilaya_centroid": 107,
+    "commune_centroid": 89
+  },
+  "linkage_note": "Commune/wilaya linkage is derived by nearest-centroid join against the geoalgeria commune set; wilaya is effectively exact, commune is best-effort."
+}
